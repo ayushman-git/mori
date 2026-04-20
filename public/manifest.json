@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Mori",
+  "name": "Quote of the Day",
   "version": "1.0.0",
-  "description": "A quiet new tab page for discipline and focus.",
+  "description": "A minimal quote of the day — fast, calm, one line at a time.",
   "chrome_url_overrides": {
     "newtab": "index.html"
   }
