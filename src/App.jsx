@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const quotes = [
   { text: 'You are what you do repeatedly.', author: 'Aristotle' },
@@ -47,16 +47,29 @@ const quotes = [
 function App() {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
+  const quoteTransitionRef = useRef(null);
 
   useEffect(() => {
     const loadTimer = window.setTimeout(() => setVisible(true), 30);
     return () => window.clearTimeout(loadTimer);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (quoteTransitionRef.current !== null) {
+        window.clearTimeout(quoteTransitionRef.current);
+      }
+    };
+  }, []);
+
   const showNextQuote = useCallback(() => {
+    if (quoteTransitionRef.current !== null) {
+      window.clearTimeout(quoteTransitionRef.current);
+    }
     setVisible(false);
 
-    window.setTimeout(() => {
+    quoteTransitionRef.current = window.setTimeout(() => {
+      quoteTransitionRef.current = null;
       setIndex((current) => (current + 1) % quotes.length);
       setVisible(true);
     }, 200);
@@ -80,9 +93,13 @@ function App() {
     <main className="quote-screen">
       <section className={`quote-block ${visible ? 'is-visible' : ''}`} aria-live="polite">
         <p className="quote">
-          <span className="quote-mark" aria-hidden="true">&ldquo;</span>
+          <span className="quote-mark" aria-hidden="true">
+            &ldquo;
+          </span>
           {quote.text}
-          <span className="quote-mark" aria-hidden="true">&rdquo;</span>
+          <span className="quote-mark" aria-hidden="true">
+            &rdquo;
+          </span>
         </p>
         <p className={`author ${quote.author ? '' : 'is-empty'}`}>{quote.author || 'Silent'}</p>
       </section>
