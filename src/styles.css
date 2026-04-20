@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('/fonts/playfair-display-latin-400.woff2') format('woff2');
+}
+
 :root {
   font-family:
     Inter,
@@ -71,8 +79,16 @@ body::after {
   cursor: default;
 }
 
-.quote-block {
+.quote-stack {
+  display: flex;
   width: min(100%, 680px);
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.quote-block {
+  width: 100%;
   opacity: 0;
   text-align: center;
   transform: translateY(5px);
@@ -85,10 +101,6 @@ body::after {
 .quote-block.is-visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-.quote-block:hover {
-  opacity: 0.88;
 }
 
 .quote {
@@ -120,13 +132,65 @@ body::after {
   opacity: 0;
 }
 
+.new-quote-btn {
+  margin: 0;
+  padding: 10px 20px;
+  border: 1px solid rgba(234, 234, 234, 0.14);
+  border-radius: 999px;
+  background: rgba(234, 234, 234, 0.04);
+  color: #b9b9b9;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.new-quote-btn:hover {
+  border-color: rgba(194, 168, 120, 0.35);
+  background: rgba(234, 234, 234, 0.07);
+  color: #eaeaea;
+}
+
+.new-quote-btn:focus-visible {
+  outline: 2px solid rgba(194, 168, 120, 0.55);
+  outline-offset: 3px;
+}
+
+.new-quote-btn:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-block {
+    transition: none;
+  }
+
+  .new-quote-btn:active {
+    transform: none;
+  }
+}
+
 @media (max-width: 520px) {
   .quote-screen {
     padding: 24px;
   }
 
+  .quote-stack {
+    gap: 24px;
+  }
+
   .quote {
     font-size: 29px;
     line-height: 1.55;
+  }
+
+  .new-quote-btn {
+    min-height: 44px;
+    padding: 12px 22px;
   }
 }
