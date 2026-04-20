@@ -41,3 +41,7 @@ export const quotes = [
   { text: 'The mirror does not care about intention.', author: '' },
   { text: 'Your discipline is your private reputation.', author: '' },
 ];
+
+if (quotes.length === 0) {
+  throw new Error('quotes: expected at least one entry.');
+}
