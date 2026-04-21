@@ -1,8 +1,6 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { quotes } from './quotes.js';
-import {
-  THEME_STORAGE_KEY,
-  applyDocumentTheme,
-} from './theme.js';
+import { THEME_STORAGE_KEY, applyDocumentTheme } from './theme.js';
 
 function getThemeFromDocument() {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
@@ -140,10 +138,15 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.code === 'Space') {
-        event.preventDefault();
-        showNextQuote();
+      if (event.code !== 'Space' || event.repeat) return;
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest('button, a[href], input, select, textarea, [contenteditable="true"]')
+      ) {
+        return;
       }
+      event.preventDefault();
+      showNextQuote();
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -170,23 +173,38 @@ function App() {
     }
   }, [quote]);
 
-  const themeLabel =
-    theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-
   return (
     <>
-      <main className="quote-screen">
+      <a href="#main-content" className="skip-link">
+        Skip to quote
+      </a>
+      <main id="main-content" className="quote-screen" tabIndex={-1}>
         <div className="quote-stack">
-          <section className={`quote-block ${visible ? 'is-visible' : ''}`} aria-live="polite">
-            <p className="quote">
-              <span className="quote-mark" aria-hidden="true">
-                &ldquo;
-              </span>
-              {quote.text}
-              <span className="quote-mark" aria-hidden="true">
-                &rdquo;
-              </span>
-            </p>
+          <section
+            className={`quote-block ${visible ? 'is-visible' : ''}`}
+            aria-labelledby="quote-heading"
+          >
+            <h1 id="quote-heading" className="visually-hidden">
+              Quote of the day
+            </h1>
+            <div className="quote-live" aria-live="polite" aria-atomic="true">
+              <blockquote className="quote">
+                <span className="quote-mark" aria-hidden="true">
+                  &ldquo;
+                </span>
+                {quote.text}
+                <span className="quote-mark" aria-hidden="true">
+                  &rdquo;
+                </span>
+              </blockquote>
+              {quote.author ? (
+                <footer className="author">
+                  <cite className="author-cite">{quote.author}</cite>
+                </footer>
+              ) : (
+                <footer className="author is-empty" aria-hidden="true" />
+              )}
+            </div>
             <div className="quote-copy-row">
               <button
                 type="button"
@@ -210,11 +228,10 @@ function App() {
                   <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
                 </svg>
               </button>
-              <span className="quote-copy-feedback" aria-live="polite">
-                {copyFeedback ? 'Copied' : ''}
+              <span className="quote-copy-feedback" role="status">
+                {copyFeedback ? 'Copied to clipboard' : ''}
               </span>
             </div>
-            <p className={`author ${quote.author ? '' : 'is-empty'}`}>{quote.author || 'Silent'}</p>
           </section>
           <button type="button" className="new-quote-btn" onClick={showNextQuote}>
             New quote
@@ -226,7 +243,9 @@ function App() {
           type="button"
           className="theme-toggle"
           onClick={toggleTheme}
-          aria-label={themeLabel}
+          role="switch"
+          aria-checked={theme === 'dark'}
+          aria-label="Dark mode"
         >
           {theme === 'dark' ? (
             <svg
