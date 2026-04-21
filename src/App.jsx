@@ -11,6 +11,26 @@ function getThemeFromDocument() {
 
 const STORAGE_KEY = 'mori.quoteOfDay.v1';
 const QUOTE_TRANSITION_MS = 200;
+const COPY_FEEDBACK_MS = 2000;
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+  } finally {
+    document.body.removeChild(ta);
+  }
+}
 
 function dayKey() {
   const d = new Date();
@@ -64,7 +84,9 @@ function App() {
   const [theme, setTheme] = useState(getThemeFromDocument);
   const [index, setIndex] = useState(initialQuoteIndex);
   const [visible, setVisible] = useState(true);
+  const [copyFeedback, setCopyFeedback] = useState(false);
   const quoteTransitionRef = useRef(null);
+  const copyFeedbackRef = useRef(null);
   const themeChangedByUserRef = useRef(false);
 
   useEffect(() => {
@@ -87,6 +109,9 @@ function App() {
       if (quoteTransitionRef.current !== null) {
         window.clearTimeout(quoteTransitionRef.current);
       }
+      if (copyFeedbackRef.current !== null) {
+        window.clearTimeout(copyFeedbackRef.current);
+      }
     };
   }, []);
 
@@ -101,6 +126,11 @@ function App() {
 
     quoteTransitionRef.current = window.setTimeout(() => {
       quoteTransitionRef.current = null;
+      setCopyFeedback(false);
+      if (copyFeedbackRef.current !== null) {
+        window.clearTimeout(copyFeedbackRef.current);
+        copyFeedbackRef.current = null;
+      }
       setIndex((current) => {
         if (quotes.length <= 1) return 0;
         return (current + 1) % quotes.length;
@@ -123,6 +153,24 @@ function App() {
 
   const quote = quotes[index] ?? quotes[0];
 
+  const handleCopyQuote = useCallback(async () => {
+    const text = quote?.text ?? '';
+    if (!text) return;
+    try {
+      await copyTextToClipboard(text);
+      setCopyFeedback(true);
+      if (copyFeedbackRef.current !== null) {
+        window.clearTimeout(copyFeedbackRef.current);
+      }
+      copyFeedbackRef.current = window.setTimeout(() => {
+        copyFeedbackRef.current = null;
+        setCopyFeedback(false);
+      }, COPY_FEEDBACK_MS);
+    } catch {
+      // Clipboard denied or unavailable; avoid console noise
+    }
+  }, [quote]);
+
   const themeLabel =
     theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
 
@@ -140,6 +188,33 @@ function App() {
                 &rdquo;
               </span>
             </p>
+            <div className="quote-copy-row">
+              <button
+                type="button"
+                className="quote-copy-btn"
+                onClick={handleCopyQuote}
+                aria-label="Copy quote to clipboard"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                </svg>
+              </button>
+              <span className="quote-copy-feedback" aria-live="polite">
+                {copyFeedback ? 'Copied' : ''}
+              </span>
+            </div>
             <p className={`author ${quote.author ? '' : 'is-empty'}`}>{quote.author || 'Silent'}</p>
           </section>
           <button type="button" className="new-quote-btn" onClick={showNextQuote}>

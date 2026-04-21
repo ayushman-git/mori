@@ -240,6 +240,64 @@ body::after {
   opacity: 0;
 }
 
+.quote-copy-row {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.quote-copy-btn {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--color-toggle-border);
+  border-radius: 999px;
+  background: var(--color-toggle-bg);
+  color: var(--color-toggle-fg);
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.quote-copy-btn:hover {
+  border-color: var(--color-toggle-border-hover);
+  background: var(--color-toggle-bg-hover);
+}
+
+.quote-copy-btn:focus {
+  outline: none;
+}
+
+.quote-copy-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.quote-copy-btn:active {
+  transform: translateY(1px);
+}
+
+.quote-copy-btn svg {
+  flex-shrink: 0;
+}
+
+.quote-copy-feedback {
+  color: var(--color-author);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+}
+
 .new-quote-btn {
   margin: 0;
   padding: 10px 20px;
@@ -283,7 +341,8 @@ body::after {
   }
 
   .new-quote-btn:active,
-  .theme-toggle:active {
+  .theme-toggle:active,
+  .quote-copy-btn:active {
     transform: none;
   }
 }
