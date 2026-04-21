@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { quotes } from './quotes.js';
 import {
   THEME_STORAGE_KEY,
