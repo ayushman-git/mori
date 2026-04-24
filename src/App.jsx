@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { quotes } from './quotes.js';
+import QuoteDisplay from './QuoteDisplay.jsx';
 import { THEME_STORAGE_KEY, applyDocumentTheme } from './theme.js';
+import { useDailyQuote } from './useDailyQuote.js';
 
-function getThemeFromDocument() {
-  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-}
-
-const STORAGE_KEY = 'mori.quoteOfDay.v1';
-const QUOTE_TRANSITION_MS = 200;
 const COPY_FEEDBACK_MS = 2000;
 
 async function copyTextToClipboard(text) {
@@ -29,62 +24,17 @@ async function copyTextToClipboard(text) {
   }
 }
 
-function dayKey() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function dailyIndexForDate(dateStr) {
-  let h = 0;
-  for (let i = 0; i < dateStr.length; i += 1) {
-    h = (h * 31 + dateStr.charCodeAt(i)) >>> 0;
-  }
-  return quotes.length ? h % quotes.length : 0;
-}
-
-function readStoredDailyIndex(today) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed?.date === today && typeof parsed.index === 'number') {
-      const { index } = parsed;
-      if (index >= 0 && index < quotes.length) return index;
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function writeStoredDailyIndex(today, index) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, index }));
-  } catch {
-    // ignore quota / private mode
-  }
-}
-
-function initialQuoteIndex() {
-  const today = dayKey();
-  const stored = readStoredDailyIndex(today);
-  if (stored !== null) return stored;
-  const index = dailyIndexForDate(today);
-  writeStoredDailyIndex(today, index);
-  return index;
-}
-
 function App() {
-  const [theme, setTheme] = useState(getThemeFromDocument);
-  const [index, setIndex] = useState(initialQuoteIndex);
-  const [visible, setVisible] = useState(true);
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
+  );
   const [copyFeedback, setCopyFeedback] = useState(false);
-  const quoteTransitionRef = useRef(null);
   const copyFeedbackRef = useRef(null);
   const themeChangedByUserRef = useRef(false);
+  const quoteTextRef = useRef('');
+
+  const { quote, visible, showNextQuote } = useDailyQuote();
+  quoteTextRef.current = quote.text;
 
   useEffect(() => {
     applyDocumentTheme(theme);
@@ -101,62 +51,17 @@ function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (quoteTransitionRef.current !== null) {
-        window.clearTimeout(quoteTransitionRef.current);
-      }
+  useEffect(
+    () => () => {
       if (copyFeedbackRef.current !== null) {
         window.clearTimeout(copyFeedbackRef.current);
       }
-    };
-  }, []);
-
-  const showNextQuote = useCallback(() => {
-    if (quotes.length === 0) return;
-
-    if (quoteTransitionRef.current !== null) {
-      window.clearTimeout(quoteTransitionRef.current);
-    }
-
-    setVisible(false);
-
-    quoteTransitionRef.current = window.setTimeout(() => {
-      quoteTransitionRef.current = null;
-      setCopyFeedback(false);
-      if (copyFeedbackRef.current !== null) {
-        window.clearTimeout(copyFeedbackRef.current);
-        copyFeedbackRef.current = null;
-      }
-      setIndex((current) => {
-        if (quotes.length <= 1) return 0;
-        return (current + 1) % quotes.length;
-      });
-      setVisible(true);
-    }, QUOTE_TRANSITION_MS);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.code !== 'Space' || event.repeat) return;
-      if (
-        event.target instanceof HTMLElement &&
-        event.target.closest('button, a[href], input, select, textarea, [contenteditable="true"]')
-      ) {
-        return;
-      }
-      event.preventDefault();
-      showNextQuote();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showNextQuote]);
-
-  const quote = quotes[index] ?? quotes[0];
+    },
+    [],
+  );
 
   const handleCopyQuote = useCallback(async () => {
-    const text = quote?.text ?? '';
+    const text = quoteTextRef.current;
     if (!text) return;
     try {
       await copyTextToClipboard(text);
@@ -171,7 +76,7 @@ function App() {
     } catch {
       // Clipboard denied or unavailable; avoid console noise
     }
-  }, [quote]);
+  }, []);
 
   return (
     <>
@@ -191,22 +96,7 @@ function App() {
               When focus is not on a button, link, or text field, press Space to show another quote.
             </p>
             <div id="quote-live" className="quote-live" aria-live="polite" aria-atomic="true">
-              <blockquote className="quote">
-                <span className="quote-mark" aria-hidden="true">
-                  &ldquo;
-                </span>
-                {quote.text}
-                <span className="quote-mark" aria-hidden="true">
-                  &rdquo;
-                </span>
-              </blockquote>
-              {quote.author ? (
-                <footer className="author">
-                  <cite className="author-cite">{quote.author}</cite>
-                </footer>
-              ) : (
-                <footer className="author is-empty" aria-hidden="true" />
-              )}
+              <QuoteDisplay text={quote.text} author={quote.author} />
             </div>
             <div className="quote-copy-row">
               <button
