@@ -374,6 +374,10 @@ body::after {
 }
 
 .new-quote-btn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
   margin: 0;
   padding: 10px 20px;
   border: 1px solid var(--color-btn-border);
@@ -415,7 +419,10 @@ body::after {
     transition: none;
   }
 
-  .skip-link {
+  .skip-link,
+  .theme-toggle,
+  .quote-copy-btn,
+  .new-quote-btn {
     transition: none;
   }
 
@@ -423,6 +430,22 @@ body::after {
   .theme-toggle:active,
   .quote-copy-btn:active {
     transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .skip-link:focus-visible,
+  .theme-toggle:focus-visible,
+  .quote-copy-btn:focus-visible,
+  .new-quote-btn:focus-visible,
+  .quote-screen:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .new-quote-btn,
+  .theme-toggle,
+  .quote-copy-btn {
+    border-color: ButtonBorder;
   }
 }
 
@@ -442,7 +465,6 @@ body::after {
   }
 
   .new-quote-btn {
-    min-height: 44px;
     padding: 12px 22px;
   }
 }
