@@ -50,7 +50,11 @@ function readStoredDailyIndex(today) {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed?.date === today && typeof parsed.index === 'number') {
+    if (
+      parsed?.date === today &&
+      typeof parsed.index === 'number' &&
+      Number.isInteger(parsed.index)
+    ) {
       const { index } = parsed;
       if (index >= 0 && index < quotes.length) return index;
     }
