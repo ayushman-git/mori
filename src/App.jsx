@@ -187,7 +187,10 @@ function App() {
             <h1 id="quote-heading" className="visually-hidden">
               Quote of the day
             </h1>
-            <div className="quote-live" aria-live="polite" aria-atomic="true">
+            <p id="quote-keyboard-hint" className="visually-hidden">
+              When focus is not on a button, link, or text field, press Space to show another quote.
+            </p>
+            <div id="quote-live" className="quote-live" aria-live="polite" aria-atomic="true">
               <blockquote className="quote">
                 <span className="quote-mark" aria-hidden="true">
                   &ldquo;
@@ -233,7 +236,13 @@ function App() {
               </span>
             </div>
           </section>
-          <button type="button" className="new-quote-btn" onClick={showNextQuote}>
+          <button
+            type="button"
+            className="new-quote-btn"
+            onClick={showNextQuote}
+            aria-controls="quote-live"
+            aria-describedby="quote-keyboard-hint"
+          >
             New quote
           </button>
         </div>
@@ -245,7 +254,11 @@ function App() {
           onClick={toggleTheme}
           role="switch"
           aria-checked={theme === 'dark'}
-          aria-label="Dark mode"
+          aria-label={
+            theme === 'dark'
+              ? 'Dark theme on; switch to light theme'
+              : 'Light theme on; switch to dark theme'
+          }
         >
           {theme === 'dark' ? (
             <svg
